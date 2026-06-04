@@ -44,7 +44,7 @@ def init_storage(data_dir: str | Path = DEFAULT_DATA_DIR) -> None:
                 with file_path.open("w", encoding="utf-8") as f:
                     for category_name in DEFAULT_CATEGORIES:
                         category = Category(name=category_name)
-                        f.write(json.dumps(asdict(category), ensure_ascii=False) + "\n")
+                        f.write(serialize_category(category) + "\n")
 
 def serialize_transaction(transaction: Transaction) -> str:
     # Transaction 객체를 JSONL 형식의 문자열로 직렬화하는 함수
