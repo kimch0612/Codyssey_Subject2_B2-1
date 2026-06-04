@@ -19,13 +19,6 @@ class BudgetAppError(Exception):
         self.hint = hint
         super().__init__(message)
 
-def passthrough(func: Callable[P, R]) -> Callable[P, R]:
-    @wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        return func(*args, **kwargs)
-
-    return wrapper
-
 ################# 데코레이터 함수 파트 #################
 
 def error_handler(func: Callable[P, R]) -> Callable[P, R]:
@@ -84,7 +77,7 @@ def validate_amount(amount_str: str) -> int:
 def validate_transaction_type(transaction_type: str) -> str:
     # transaction_type이 income, expense 중 하나인지 검증하는 함수
     transaction_type = transaction_type.strip().lower()
-    
+
     if transaction_type not in {"income", "expense"}:
         raise BudgetAppError("거래 유형은 'income' 또는 'expense'이어야 합니다.", hint="거래 유형으로 'income' 또는 'expense'를 입력해주세요.")
     return transaction_type
