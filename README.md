@@ -4,15 +4,15 @@
 가계부 야호
 
 ### 구현 순서 체크리스트
-- [ ] `data_struct.py`에서 데이터 모델 확정하기
-  - [ ] `Transaction` 필드 확정: `id`, `type`, `date`, `amount`, `category`, `memo`, `tags`
-  - [ ] `Category`, `Budget` dataclass 필드 확정
-  - [ ] `tags`를 `list[str]`로 둘지, 저장 직전 문자열로 변환할지 기준 정하기
+- [x] `data_struct.py`에서 데이터 모델 확정하기
+  - [x] `Transaction` 필드 확정: `id`, `type`, `date`, `amount`, `category`, `memo`, `tags`
+  - [X] `Category`, `Budget` dataclass 필드 확정
+  - [x] `tags`를 `list[str]`로 둘지, 저장 직전 문자열로 변환할지 기준 정하기
 
-- [ ] `budget_helper.py`에서 공통 도구 구현하기
-  - [ ] 사용자 입력 검증 함수 구현: 날짜, 월, 금액, 거래 타입
+- [X] `budget_helper.py`에서 공통 도구 구현하기
+  - [X] 사용자 입력 검증 함수 구현: 날짜, 월, 금액, 거래 타입
   - [ ] 카테고리 존재 여부 검증 함수 설계
-  - [ ] 스택트레이스 대신 `[오류]`, `[힌트]`를 출력할 예외 클래스 또는 처리 함수 만들기
+  - [X] 스택트레이스 대신 `[오류]`, `[힌트]`를 출력할 예외 클래스 또는 처리 함수 만들기
   - [ ] 과제 요구용 데코레이터 구현: 예외 처리, 실행 로그, 실행 시간 측정 중 1개 이상
 
 - [ ] `storage.py`에서 저장 방식 구현하기
