@@ -3,10 +3,13 @@
 from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
-from typing import Iterator
+from typing import Callable, Iterable, Iterator, TypeVar
 from .data_struct import Transaction, Category, Budget
+from .budget_helper import BudgetAppError
 
 import os, json
+
+T = TypeVar("T")
 
 ################# 상수 및 파일 경로 처리 파트 #################
 
@@ -80,3 +83,50 @@ def iter_transactions(data_dir: str | Path = DEFAULT_DATA_DIR) -> Iterator[Trans
             if line.strip(): # 빈 줄 무시
                 yield deserialize_transaction(line)
 
+def rewrite_jsonl_file(target_path: Path, items: Iterable[T], serializer: Callable[[T], str]) -> None:
+    # 데이터를 원자적으로 jsonl 파일에 저장하는 공통 함수
+    temp_file_path = target_path.with_suffix(".tmp")
+    try:
+        with temp_file_path.open("w", encoding="utf-8") as f:
+            for item in items:
+                f.write(serializer(item) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+        temp_file_path.replace(target_path)
+    except Exception as e:
+        if temp_file_path.exists():
+            try: temp_file_path.unlink()
+            except: pass # OSError를 명시적으로 잡아주는게 좋은가, 그리고 여기서 발생하는 오류도 로깅하는게 맞나 고민..
+        raise BudgetAppError(f"파일 저장 중 오류가 발생했습니다: {e}",
+                             "여유 공간 및 파일 권한을 확인해주세요.")
+
+def append_transaction(transaction: Transaction, data_dir: str | Path = DEFAULT_DATA_DIR) -> None:
+    # Transaction 객체를 transactions.jsonl 파일에 추가하는 함수
+    with get_transactions_file_path(data_dir).open("a", encoding="utf-8") as f:
+        f.write(serialize_transaction(transaction) + "\n")
+
+def rewrite_transactions(transactions: Iterable[Transaction], data_dir: str | Path = DEFAULT_DATA_DIR) -> None:
+    # Transaction 객체 리스트로 transactions.jsonl 파일을 원자적 쓰기를 이용해 덮어쓰는 함수
+    rewrite_jsonl_file(get_transactions_file_path(data_dir), transactions, serialize_transaction)
+
+def iter_categories(data_dir: str | Path = DEFAULT_DATA_DIR) -> Iterator[Category]:
+    # categories.jsonl 파일에서 Category 객체들을 순회하는 제너레이터 함수
+    with get_categories_file_path(data_dir).open("r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip(): # 빈 줄 무시
+                yield deserialize_category(line)
+
+def rewrite_categories(categories: Iterable[Category], data_dir: str | Path = DEFAULT_DATA_DIR) -> None:
+    # Category 객체 리스트로 categories.jsonl 파일을 원자적 쓰기를 이용해 덮어쓰는 함수
+    rewrite_jsonl_file(get_categories_file_path(data_dir), categories, serialize_category)
+
+def iter_budgets(data_dir: str | Path = DEFAULT_DATA_DIR) -> Iterator[Budget]:
+    # budgets.jsonl 파일에서 Budget 객체들을 순회하는 제너레이터 함수
+    with get_budgets_file_path(data_dir).open("r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip(): # 빈 줄 무시
+                yield deserialize_budget(line)
+
+def rewrite_budgets(budgets: Iterable[Budget], data_dir: str | Path = DEFAULT_DATA_DIR) -> None:
+    # Budget 객체 리스트로 budgets.jsonl 파일을 원자적 쓰기를 이용해 덮어쓰는 함수
+    rewrite_jsonl_file(get_budgets_file_path(data_dir), budgets, serialize_budget)
