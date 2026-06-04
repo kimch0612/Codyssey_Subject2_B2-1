@@ -4,7 +4,6 @@ Actual CRUD, search, summary, import, and export logic will live here.
 """
 
 from __future__ import annotations
-
 import argparse
 
 
