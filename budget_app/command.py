@@ -30,10 +30,21 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers.add_parser("category", add_help=False)
     )
     category_subparsers = category_parser.add_subparsers(dest="category_command")
+
     category_list_parser = add_help_option(
         category_subparsers.add_parser("list", add_help=False)
     )
     category_list_parser.set_defaults(handler=budget_service.run_category_list)
+
+    category_add_parser = add_help_option(
+        category_subparsers.add_parser("add", add_help=False)
+    )
+    category_add_parser.set_defaults(handler=budget_service.run_category_add)
+
+    category_remove_parser = add_help_option(
+        category_subparsers.add_parser("remove", add_help=False)
+    )
+    category_remove_parser.set_defaults(handler=budget_service.run_category_remove)
 
     return parser
 
