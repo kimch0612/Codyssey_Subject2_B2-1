@@ -46,6 +46,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     category_remove_parser.set_defaults(handler=budget_service.run_category_remove)
 
+    ################# 거래 #################
+
+    transaction_parser = add_help_option(
+        subparsers.add_parser("transaction", add_help=False)
+    )
+    transaction_subparsers = transaction_parser.add_subparsers(dest="transaction_command")
+
+    transaction_add_parser = add_help_option(
+        transaction_subparsers.add_parser("add", add_help=False)
+    )
+    transaction_add_parser.set_defaults(handler=budget_service.run_transaction_add)
+
     return parser
 
 

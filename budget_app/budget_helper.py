@@ -6,6 +6,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import ParamSpec, TypeVar
 from datetime import datetime
+from .data_struct import Transaction
 
 
 P = ParamSpec("P")
@@ -87,3 +88,15 @@ def parse_tags(tags_str: str) -> list[str]:
     # 태그 문자열을 리스트로 변환하는 함수
     # "식비, 영화, 월정액" -> ["식비", "영화", "월정액"]
     return [tag.strip() for tag in tags_str.split(",") if tag.strip()]
+
+def generate_transaction_id(transactions: list[Transaction] | None) -> str:
+    # 가장 마지막 거래 ID를 찾고, +1해서 새 ID를 생성하는 함수
+    if transactions is None:  # 거래 목록 객체 자체가 없는가? (발생하면 안 되는 오류)
+        raise BudgetAppError("거래 목록 객체가 전달되지 않았습니다.")
+    elif not transactions:    # 거래 목록이 없는가? (초기 상태)
+        return "TX-000001"
+
+    latest_transaction = max(transactions, key=lambda tx: int(tx.id[3:]))
+    latest_number = int(latest_transaction.id[3:])
+
+    return f"TX-{latest_number + 1:06d}"
