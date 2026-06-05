@@ -24,37 +24,16 @@ def build_parser() -> argparse.ArgumentParser:
     ))
     subparsers = parser.add_subparsers(dest="command")
 
-    for command_name in (
-        "add",
-        "list",
-        "search",
-        "summary",
-        "update",
-        "delete",
-        "import",
-        "export",
-    ):
-        command_parser = add_help_option(
-            subparsers.add_parser(command_name, add_help=False)
-        )
-        command_parser.set_defaults(handler=budget_service.run_placeholder)
-
-    budget_parser = add_help_option(subparsers.add_parser("budget", add_help=False))
-    budget_subparsers = budget_parser.add_subparsers(dest="budget_command")
-    budget_set_parser = add_help_option(
-        budget_subparsers.add_parser("set", add_help=False)
-    )
-    budget_set_parser.set_defaults(handler=budget_service.run_placeholder)
+    ################# 카테고리 #################
 
     category_parser = add_help_option(
         subparsers.add_parser("category", add_help=False)
     )
     category_subparsers = category_parser.add_subparsers(dest="category_command")
-    for category_command in ("add", "list", "remove"):
-        category_command_parser = add_help_option(
-            category_subparsers.add_parser(category_command, add_help=False)
-        )
-        category_command_parser.set_defaults(handler=budget_service.run_placeholder)
+    category_list_parser = add_help_option(
+        category_subparsers.add_parser("list", add_help=False)
+    )
+    category_list_parser.set_defaults(handler=budget_service.run_category_list)
 
     return parser
 

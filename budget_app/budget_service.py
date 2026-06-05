@@ -1,22 +1,21 @@
-"""Budget app service layer.
-
-Actual CRUD, search, summary, import, and export logic will live here.
-"""
+"""가계부 앱의 핵심 코어 모듈 | CRUD, search, summary, import, export 로직이 들어갈 예정"""
 
 from __future__ import annotations
 import argparse
+from .budget_helper import BudgetAppError
+from .storage import init_storage, iter_categories
 
 
-def run_placeholder(args: argparse.Namespace) -> int:
-    command = getattr(args, "command", None)
-    detail = getattr(args, "budget_command", None) or getattr(
-        args, "category_command", None
-    )
+################# 카테고리 로직 #################
 
-    if detail:
-        print(f"[준비 중] {command} {detail} 기능은 아직 구현되지 않았습니다.")
-    else:
-        print(f"[준비 중] {command} 기능은 아직 구현되지 않았습니다.")
+def run_category_list(args) -> int:
+    init_storage()
+    categories_data = list(iter_categories())
+
+    if not categories_data:
+        raise BudgetAppError("저장된 카테고리가 없습니다.") # 이 분기로 빠질 일이 있을까?
+
+    for category in categories_data:
+        print(f"- {category.name}")
 
     return 0
-
