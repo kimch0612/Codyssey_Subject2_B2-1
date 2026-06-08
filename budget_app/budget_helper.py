@@ -11,12 +11,13 @@ from .data_struct import Transaction
 
 P = ParamSpec("P")
 R = TypeVar("R")
+DEFAULT_ERROR_HINT = "입력값과 명령 옵션을 확인해주세요."
 
 class BudgetAppError(Exception):
     # General하게 에러/예외를 출력해주는 클래스. 적절하게 상속받아서 쓰자.
     def __init__(self, message: str, hint: str = ""):
         self.message = message
-        self.hint = hint
+        self.hint = hint or DEFAULT_ERROR_HINT
         super().__init__(message)
 
 ################# 데코레이터 함수 파트 #################
@@ -33,6 +34,7 @@ def error_handler(func: Callable[P, R]) -> Callable[P, R]:
             return 1
         except Exception as e:
             print(f"[오류] 핸들링되지 않은 에러가 발생했습니다: {e}")
+            print(f"[힌트] {DEFAULT_ERROR_HINT}")
             return 1
 
     return wrapper

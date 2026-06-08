@@ -7,7 +7,8 @@ from typing import Callable, Iterable, Iterator, TypeVar
 from .data_struct import Transaction, Category, Budget
 from .budget_helper import BudgetAppError
 
-import os, json
+import json
+import os
 
 T = TypeVar("T")
 
@@ -83,6 +84,33 @@ def iter_transactions(data_dir: str | Path = DEFAULT_DATA_DIR) -> Iterator[Trans
             if line.strip(): # 빈 줄 무시
                 yield deserialize_transaction(line)
 
+def iter_jsonl_lines_reverse(file_path: Path, chunk_size: int = 8192) -> Iterator[str]:
+    # JSONL 파일을 뒤에서 앞으로 읽는 제너레이터 함수
+    with file_path.open("rb") as f:
+        f.seek(0, os.SEEK_END)
+        position = f.tell()
+        buffer = b""
+
+        while position > 0:
+            read_size = min(chunk_size, position)
+            position -= read_size
+            f.seek(position)
+            buffer = f.read(read_size) + buffer
+            lines = buffer.split(b"\n")
+            buffer = lines[0]
+
+            for line in reversed(lines[1:]):
+                if line.strip():
+                    yield line.decode("utf-8").rstrip("\r")
+
+        if buffer.strip():
+            yield buffer.decode("utf-8").rstrip("\r")
+
+def iter_transactions_reverse(data_dir: str | Path = DEFAULT_DATA_DIR) -> Iterator[Transaction]:
+    # transactions.jsonl 파일에서 Transaction 객체들을 역순으로 순회하는 제너레이터 함수
+    for line in iter_jsonl_lines_reverse(get_transactions_file_path(data_dir)):
+        yield deserialize_transaction(line)
+
 def rewrite_jsonl_file(target_path: Path, items: Iterable[T], serializer: Callable[[T], str]) -> None:
     # 데이터를 원자적으로 jsonl 파일에 저장하는 공통 함수
     temp_file_path = target_path.with_suffix(".tmp")
@@ -95,10 +123,12 @@ def rewrite_jsonl_file(target_path: Path, items: Iterable[T], serializer: Callab
         temp_file_path.replace(target_path)
     except Exception as e:
         if temp_file_path.exists():
-            try: temp_file_path.unlink()
-            except: pass # OSError를 명시적으로 잡아주는게 좋은가, 그리고 여기서 발생하는 오류도 로깅하는게 맞나 고민..
+            try:
+                temp_file_path.unlink()
+            except OSError:
+                pass # 임시 파일 정리 실패는 원래 저장 오류를 우선 보고한다.
         raise BudgetAppError(f"파일 저장 중 오류가 발생했습니다: {e}",
-                             "여유 공간 및 파일 권한을 확인해주세요.")
+                             "여유 공간 및 파일 권한을 확인해주세요.") from e
 
 def append_transaction(transaction: Transaction, data_dir: str | Path = DEFAULT_DATA_DIR) -> None:
     # Transaction 객체를 transactions.jsonl 파일에 추가하는 함수
