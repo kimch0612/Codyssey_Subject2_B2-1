@@ -20,7 +20,7 @@ def main() -> int:
     category_subparsers.add_parser("add")
     category_subparsers.add_parser("list")
 
-    add_parser = subparsers.add_parser("add")
+    add_parser = subparsers.add_parser("add") # 근데 이건 필요 없는거 아닌가? 흠..
 
     list_parser = subparsers.add_parser("list")
     list_parser.add_argument("-limit", type=int, default=10)
@@ -41,6 +41,7 @@ def main() -> int:
             print(f"[오류] {error}")
             print("[힌트] 비어 있지 않은 새 카테고리 이름을 입력하세요.")
             return 1
+
     elif args.command == "add":
         service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
 
@@ -80,6 +81,7 @@ def main() -> int:
                 "카테고리는 category list에서 등록 여부를 확인하세요."
             )
             return 1
+            
     elif args.command == "list":
         service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
         try:
