@@ -28,3 +28,24 @@ class TransactionRepository:
                 data = json.loads(line)
                 transaction = Transaction(**data)
                 yield transaction # 하나씩 투척
+
+class CategoryStore:
+    def __init__(self, data_dir: Path) -> None:
+        if not data_dir.exists():
+            data_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.path = data_dir / "categories.jsonl"
+        self.path.touch(exist_ok=True)
+
+    def add(self, name: str) -> None:
+        data = {"name": name}
+        json_line = json.dumps(data, ensure_ascii=False) # 딕셔너리를 JSON 문자열로 직렬화
+
+        with self.path.open("a", encoding="utf-8") as f:
+            f.write(json_line + "\n")
+
+    def iter_categories(self) -> Iterator[str]:
+        with self.path.open("r", encoding="utf-8") as f:
+            for line in f:
+                data = json.loads(line)
+                yield data["name"]
