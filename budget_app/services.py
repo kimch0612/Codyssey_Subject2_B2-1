@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from datetime import date as Date
 
 from .storage import CategoryStore, TransactionRepository
+from .models import Transaction
 
 import re
 
@@ -51,3 +52,51 @@ class TransactionService:
             Date.fromisoformat(date)
         except ValueError:
             raise ValueError("존재하지 않는 날짜를 입력했습니다.")
+
+    def add_transaction(
+        self,
+        date: str,
+        transaction_type: str,
+        category: str,
+        amount: int,
+        memo: str = "",
+        tags: list[str] | None = None,
+    ) -> Transaction:
+        date = date.strip()
+        transaction_type = transaction_type.strip()
+        category = category.strip()
+        memo = memo.strip()
+        if tags is None: tags = []
+
+        self.validate_transaction_data(
+            date,
+            transaction_type,
+            category,
+            amount
+        )
+
+        new_id = self.generate_id()
+
+        transaction = Transaction(
+            id=new_id,
+            type=transaction_type,
+            date=date,
+            amount=amount,
+            category=category,
+            memo=memo,
+            tags=tags,
+        )
+        self.transaction_repository.add(transaction)
+
+        return transaction
+
+    def generate_id(self) -> str:
+        highest_number = 0
+
+        for transaction in self.transaction_repository.iter_transactions():
+            number = int(transaction.id.removeprefix("TX-"))
+            if number > highest_number:
+                highest_number = number
+
+        return f"TX-{highest_number + 1:06d}"
+            
