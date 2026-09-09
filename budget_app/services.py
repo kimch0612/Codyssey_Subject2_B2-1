@@ -4,7 +4,7 @@ from datetime import date as Date
 from .storage import CategoryStore, TransactionRepository
 from .models import Transaction
 
-import re
+import re, heapq
 
 
 class CategoryService:
@@ -99,4 +99,18 @@ class TransactionService:
                 highest_number = number
 
         return f"TX-{highest_number + 1:06d}"
-            
+
+    def list_transaction(self, limit: int = 10) -> list[Transaction]:
+        if type(limit) is not int or limit <= 0:
+            raise ValueError("조회 개수는 1 이상의 정수여야 합니다.")
+
+        data = heapq.nlargest(
+            limit,
+            self.transaction_repository.iter_transactions(),
+            key = lambda transaction: (
+                transaction.date,
+                int(transaction.id.removeprefix("TX-"))
+            )
+        )
+
+        return data

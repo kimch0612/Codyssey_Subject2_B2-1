@@ -22,6 +22,9 @@ def main() -> int:
 
     add_parser = subparsers.add_parser("add")
 
+    list_parser = subparsers.add_parser("list")
+    list_parser.add_argument("-limit", type=int, default=10)
+
     args = parser.parse_args()
 
     if args.command == "category":
@@ -77,5 +80,22 @@ def main() -> int:
                 "카테고리는 category list에서 등록 여부를 확인하세요."
             )
             return 1
+    elif args.command == "list":
+        service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
+        try:
+            transactions = service.list_transaction(args.limit)
+        except ValueError as error:
+            print(f"[오류] {error}")
+            print("[힌트] 조회 개수는 1 이상의 정수여야 합니다.")
+            return 1
+
+        if not transactions:
+            print("거래 내역이 없습니다.")
+            return 0
+
+        for transaction in transactions:
+            print(transaction)
+
+        return 0
 
     return 0
