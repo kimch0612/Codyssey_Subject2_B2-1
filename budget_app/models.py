@@ -8,4 +8,4 @@ class Transaction:    # e.g.
     amount: int         # 21000
     category: str       # "food", "transit"
     memo: str = ""      # "처갓집 슈프림치킨"
-    tags: list[str] = field(default_factory=list)     # ["외식", "치킨"]
+    tags: list[str] = field(default_factory=list) # ["외식", "치킨"]
