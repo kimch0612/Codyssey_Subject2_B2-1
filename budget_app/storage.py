@@ -125,3 +125,9 @@ class BudgetStore:
         finally:
             if temp_file_path and temp_file_path.exists():
                 os.remove(temp_file_path)
+
+    def add(self, month: str, amount: int ) -> None:
+        data = {"month": month, "amount": amount}
+        json_line = json.dumps(data, ensure_ascii=False)
+        with self.path.open("a", encoding='utf-8') as f:
+            f.write(json_line + '\n')

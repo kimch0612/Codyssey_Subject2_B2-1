@@ -2,7 +2,7 @@ from collections.abc import Iterator
 from datetime import date as Date
 from dataclasses import replace
 
-from .storage import CategoryStore, TransactionRepository
+from .storage import CategoryStore, TransactionRepository, BudgetStore
 from .models import Transaction
 
 import re, heapq
@@ -35,7 +35,7 @@ class CategoryService:
             raise ValueError("카테고리 이름은 빈 문자열일 수 없습니다.")
         elif name not in self.iter_categories():
             raise ValueError(f"카테고리 '{name}'은 존재하지 않습니다.")
-            
+
         for transaction in self.transaction_repository.iter_transactions():
             if transaction.category == name:
                 raise ValueError("사용 중인 카테고리는 삭제할 수 없습니다.")
@@ -304,3 +304,41 @@ class TransactionService:
         self.transaction_repository.replace_all(transactions)
         
         return updated
+
+class BudgetService:
+    def __init__(self, budget_store: BudgetStore):
+        self.budget_store = budget_store
+
+    def validate_data(self, month: str, amount: int) -> None:
+        if type(month) is not str or re.fullmatch(
+            r"[0-9]{4}-[0-9]{2}", month
+        ) is None:
+            raise ValueError("월 데이터는 YYYY-MM 형식이어야 합니다.")
+
+        try:
+            Date.fromisoformat(f"{month}-01")
+        except ValueError:
+            raise ValueError("실제로 존재하는 연월을 입력하세요.") from None
+
+        if type(amount) is not int or amount < 0:
+            raise ValueError("예산은 0 이상의 정수여야 합니다.")
+
+    def set_budget(self, month: str, amount: int) -> None:
+        self.validate_data(month, amount)
+
+        exists = any(
+            budget["month"] == month
+            for budget in self.budget_store.iter_budgets()
+        )
+
+        if exists:
+            self.update_budget(month, amount)
+        else:
+            self.add_budget(month, amount)
+        
+    def add_budget(self, month: str, amount: int):
+        # set_budget에서 이미 validate_data를 했으니 중복으로 할 필요는 없을듯
+        self.budget_store.add(month, amount)
+        
+    def update_budget(self, month: str, amount: int):
+        pass
