@@ -218,3 +218,20 @@ class TransactionService:
                 yield transaction
 
             last_key = self.transaction_sort_key(batch[-1])
+
+    def delete_transaction(self, transaction_id: str) -> None:
+        found = any(
+            transaction.id == transaction_id
+            for transaction in self.transaction_repository.iter_transactions()
+        )
+
+        if not found:
+            raise ValueError("존재하지 않는 거래 ID입니다.")
+
+        remaining = (
+            transaction
+            for transaction in self.transaction_repository.iter_transactions()
+            if transaction.id != transaction_id
+        )
+
+        self.transaction_repository.replace_all(remaining)
