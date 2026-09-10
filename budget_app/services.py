@@ -114,3 +114,27 @@ class TransactionService:
         )
 
         return data
+
+    def filter_transactions(
+        self,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        category: str | None = None,
+        transaction_type: str | None = None,
+        query: str | None = None,
+        tag: str | None = None,
+    ) -> Iterator[Transaction]:
+        for transaction in self.transaction_repository.iter_transactions():
+            if date_from is not None and transaction.date < date_from: # 특정 날짜 이후인가
+                continue
+            if date_to is not None and transaction.date > date_to: # 특정 날짜 이전인가
+                continue
+            if category is not None and transaction.category != category: # 특정 카테고리인가
+                continue
+            if transaction_type is not None and transaction.type != transaction_type: # 특정 거래 타입인가
+                continue
+            if query is not None and query not in transaction.memo: # 특정 메모인가
+                continue
+            if tag is not None and tag not in transaction.tags: # 특정 태그가 포함됐는가
+                continue
+            yield transaction
