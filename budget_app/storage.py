@@ -1,10 +1,10 @@
-from collections.abc import Iterator
+from collections.abc import Iterator, Iterable
 from pathlib import Path
 from dataclasses import asdict # dataclass 객체를 dict로 변환해줌
 
 from .models import Transaction
 
-import json
+import json, os, tempfile
 
 class TransactionRepository:
     def __init__(self, data_dir: Path) -> None:
@@ -28,6 +28,28 @@ class TransactionRepository:
                 data = json.loads(line)
                 transaction = Transaction(**data)
                 yield transaction # 하나씩 투척
+
+    def replace_all(
+        self,
+        transactions: Iterable[Transaction]
+    ) -> None:
+        temp_file_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=self.path.parent,
+                delete=False
+            ) as f:
+                temp_file_path = Path(f.name)
+                for transaction in transactions:
+                    transaction_data = asdict(transaction)
+                    json_line = json.dumps(transaction_data, ensure_ascii=False)
+                    f.write(json_line + "\n")
+            os.replace(temp_file_path, self.path) # 순식간에 휙 교체
+        finally:
+            if temp_file_path and temp_file_path.exists():
+                os.remove(temp_file_path)
 
 class CategoryStore:
     def __init__(self, data_dir: Path) -> None:
