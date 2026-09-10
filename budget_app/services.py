@@ -402,6 +402,14 @@ class SummaryService:
                     + transaction.amount
                 )
 
+        budget_usage_rate = None
+        budget_exceeded_amount = None
+
+        if budget_amount is not None:
+            budget_exceeded_amount = max(total_expense - budget_amount, 0)
+            if budget_amount > 0:
+                budget_usage_rate = total_expense / budget_amount * 100
+
         return MonthlySummary(
             month=month,
             transaction_count=transaction_count,
@@ -410,4 +418,6 @@ class SummaryService:
             balance=total_income - total_expense,
             category_expenses=category_expenses,
             budget_amount=budget_amount,
+            budget_usage_rate=budget_usage_rate,
+            budget_exceeded_amount=budget_exceeded_amount
         )
