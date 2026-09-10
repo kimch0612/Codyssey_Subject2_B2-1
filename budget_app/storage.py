@@ -151,5 +151,26 @@ class CsvTransactionStore:
                 }
                 writer.writerow(row)
                 count += 1
-                
+
         return count
+    
+    def iter_rows(self, input_path: Path) -> Iterator[dict[str, str]]:
+        # csv 파일을 읽어서 dict형으로 변환하고 투척하자
+        required_fields = {"date", "type", "category", "amount"}
+
+        with input_path.open("r", newline="", encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            headers = reader.fieldnames
+
+            if headers is None or not required_fields.issubset(headers):
+                raise ValueError(
+                    "CSV에 date, type, category, amount 헤더가 필요합니다."
+                )
+
+            for row in reader:
+                if None in row or any(value is None for value in row.values()):
+                    raise ValueError(
+                        f"CSV {reader.line_num}줄 부근의 열 개수가 헤더와 다릅니다."
+                    )
+
+                yield row
