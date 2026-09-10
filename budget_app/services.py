@@ -372,6 +372,12 @@ class SummaryService:
     
     def summarize_month(self, month: str) -> MonthlySummary:
         self.validate_data(month)
+        budget_amount = None
+
+        for budget in self.budget_store.iter_budgets():
+            if budget["month"] == month:
+                budget_amount = budget["amount"]
+                break
 
         transactions = (
             transaction
@@ -403,4 +409,5 @@ class SummaryService:
             total_expense=total_expense,
             balance=total_income - total_expense,
             category_expenses=category_expenses,
+            budget_amount=budget_amount,
         )
