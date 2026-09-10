@@ -492,3 +492,42 @@ class ExportService:
             )
 
         return self.csv_store.export(output_path, transactions)
+
+class ImportService:
+    def __init__(
+        self,
+        transaction_service: TransactionService,
+        csv_store: CsvTransactionStore,
+    ) -> None:
+        self.transaction_service = transaction_service
+        self.csv_store = csv_store
+
+    def import_transactions(self, input_path: Path) -> tuple[int, int]: # (imported, skipped)
+        imported_count, skipped_count = 0, 0
+        
+        for row in self.csv_store.iter_rows(input_path):
+            try:
+                amount = int(row["amount"])
+
+                tags = [
+                    tag.strip()
+                    for tag in row.get("tags", "").split(",")
+                    if tag.strip()
+                ]
+
+                self.transaction_service.add_transaction(
+                    date=row["date"],
+                    transaction_type=row["type"],
+                    category=row["category"],
+                    amount=amount,
+                    memo=row.get("memo", ""),
+                    tags=tags,
+                )
+
+            except ValueError:
+                skipped_count += 1
+                continue
+
+            imported_count += 1
+
+        return imported_count, skipped_count
