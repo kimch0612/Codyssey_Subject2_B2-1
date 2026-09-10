@@ -1,8 +1,9 @@
 # 가계부 프로그램 main entry
+from os import path
 from pathlib import Path
 
-from .services import CategoryService, TransactionService, BudgetService, SummaryService
-from .storage import CategoryStore, TransactionRepository, BudgetStore
+from .services import CategoryService, TransactionService, BudgetService, SummaryService, ExportService
+from .storage import CategoryStore, TransactionRepository, BudgetStore, CsvTransactionStore
 
 import argparse
 
@@ -58,6 +59,12 @@ def main() -> int:
     summary_parser = subparsers.add_parser("summary")
     summary_parser.add_argument("-month", required=True)
     summary_parser.add_argument("-top", type=int, default=3)
+
+    export_parser = subparsers.add_parser("export")
+    export_parser.add_argument("-out", type=Path, required=True)
+    export_parser.add_argument("-month")
+    export_parser.add_argument("-from", dest="date_from")
+    export_parser.add_argument("-to", dest="date_to")
 
     args = parser.parse_args()
 
@@ -263,5 +270,27 @@ def main() -> int:
             print("지출 내역이 없습니다.")
         for rank, (category, amount) in enumerate(top_categories, start=1):
             print(f"{rank}) {category} {amount}원")
+
+    elif args.command == "export":
+        service = ExportService(
+            TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) ),
+            CsvTransactionStore()
+        )
+        try:
+            count = service.export_transactions(
+                output_path=args.out,
+                month=args.month,
+                date_from=args.date_from,
+                date_to=args.date_to,
+            )
+            print(f"[완료] {args.out} ({count} records)")
+        except ValueError as error:
+            print(f"[오류] {error}")
+            print("[힌트] 날짜 형식, 월 범위, 기간 조건을 확인하세요.")
+            return 1
+        except FileExistsError:
+            print(f"[오류] 출력 파일이 이미 존재합니다: {args.out}")
+            print("[힌트] 다른 출력 파일명을 지정하세요.")
+            return 1
 
     return 0
