@@ -33,6 +33,9 @@ def main() -> int:
     search_parser.add_argument("-q", dest="query")
     search_parser.add_argument("-tag")
 
+    delete_parser = subparsers.add_parser("delete")
+    delete_parser.add_argument("-id", required=True)
+
     args = parser.parse_args()
 
     if args.command == "category":
@@ -133,5 +136,17 @@ def main() -> int:
             print("검색 결과가 없습니다.")
         
         return 0
+
+    elif args.command == "delete":
+        service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
+
+        try:
+            service.delete_transaction(args.id)
+            print(f"[삭제 완료] id: {args.id}")
+            return 0
+        except ValueError as error:
+            print(f"[오류] {error}")
+            print("[힌트] 삭제하려는 거래 ID를 확인하세요.")
+            return 1
 
     return 0
