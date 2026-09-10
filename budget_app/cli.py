@@ -19,6 +19,7 @@ def main() -> int:
     )
     category_subparsers.add_parser("add")
     category_subparsers.add_parser("list")
+    category_subparsers.add_parser("remove")
 
     add_parser = subparsers.add_parser("add") # 근데 이건 필요 없는거 아닌가? 흠..
 
@@ -48,7 +49,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.command == "category":
-        service = CategoryService(CategoryStore(data_dir))
+        service = CategoryService( CategoryStore(data_dir), TransactionRepository(data_dir) )
         try:
             if args.category_command == "add":
                 name = input("카테고리 이름을 입력해주세요: ")
@@ -57,9 +58,19 @@ def main() -> int:
             elif args.category_command == "list":
                 for name in service.iter_categories():
                     print(f"- {name}")
+            elif args.category_command == "remove":
+                name = input("카테고리 이름을 입력해주세요: ")
+                service.remove_category(name)
+                print(f"[삭제 완료] category={name.strip()}")
         except ValueError as error:
             print(f"[오류] {error}")
-            print("[힌트] 비어 있지 않은 새 카테고리 이름을 입력하세요.")
+            if args.category_command == "remove":
+                print(
+                    "[힌트] category list로 이름을 확인하고, "
+                    "사용 중이면 해당 거래를 먼저 수정하거나 삭제하세요."
+                )
+            else:
+                print("[힌트] 비어 있지 않은 새 카테고리 이름을 입력하세요.")
             return 1
 
     elif args.command == "add":
