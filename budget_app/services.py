@@ -1,8 +1,9 @@
 from collections.abc import Iterator
 from datetime import date as Date
 from dataclasses import replace
+from pathlib import Path
 
-from .storage import CategoryStore, TransactionRepository, BudgetStore
+from .storage import CategoryStore, TransactionRepository, BudgetStore, CsvTransactionStore
 from .models import Transaction, MonthlySummary
 
 import re, heapq
@@ -435,3 +436,59 @@ class SummaryService:
             category_expenses.items(),
             key=lambda item: item[1],
         )
+
+class ExportService:
+    def __init__(
+        self,
+        transaction_service: TransactionService,
+        csv_store: CsvTransactionStore,
+    ) -> None:
+        self.transaction_service = transaction_service
+        self.csv_store = csv_store
+
+    def validate_data(self, month: str) -> None:
+        if type(month) is not str or re.fullmatch(
+            r"[0-9]{4}-[0-9]{2}", month
+        ) is None:
+            raise ValueError("월 데이터는 YYYY-MM 형식이어야 합니다.")
+
+        try:
+            Date.fromisoformat(f"{month}-01")
+        except ValueError:
+            raise ValueError("실제로 존재하는 연월을 입력하세요.") from None
+
+    def export_transactions(
+        self,
+        output_path: Path,
+        month: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+    ) -> int:
+        if month is None and date_from is None and date_to is None:
+            raise ValueError("월 또는 시작일·종료일을 지정해주세요.")
+
+        if (date_from is None) != (date_to is None):
+            raise ValueError("시작일과 종료일은 함께 지정해야 합니다.")
+
+        if month is not None:
+            self.validate_data(month)
+
+        self.transaction_service.validate_search_conditions(
+            date_from=date_from,
+            date_to=date_to,
+            transaction_type=None,
+        )
+
+        transactions = self.transaction_service.filter_transactions(
+            date_from=date_from,
+            date_to=date_to,
+        )
+
+        if month is not None:
+            transactions = (
+                transaction
+                for transaction in transactions
+                if transaction.date.startswith(month + "-")
+            )
+
+        return self.csv_store.export(output_path, transactions)
