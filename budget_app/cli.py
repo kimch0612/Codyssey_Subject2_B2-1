@@ -1,8 +1,8 @@
 # 가계부 프로그램 main entry
 from pathlib import Path
 
-from .services import CategoryService, TransactionService
-from .storage import CategoryStore, TransactionRepository
+from .services import CategoryService, TransactionService, BudgetService
+from .storage import CategoryStore, TransactionRepository, BudgetStore
 
 import argparse
 
@@ -45,6 +45,15 @@ def main() -> int:
     update_parser.add_argument("-amount", type=int)
     update_parser.add_argument("-memo")
     update_parser.add_argument("-tags")
+
+    budget_parser = subparsers.add_parser("budget")
+    budget_subparsers = budget_parser.add_subparsers(
+        dest="budget_command",
+        required=True,
+    )
+    budget_set_parser = budget_subparsers.add_parser("set")
+    budget_set_parser.add_argument("-month", required=True)
+    budget_set_parser.add_argument("-amount", type=int, required=True)
 
     args = parser.parse_args()
 
@@ -197,6 +206,17 @@ def main() -> int:
                 "[힌트] 거래 ID와 날짜 형식, 타입, 등록된 카테고리, "
                 "1 이상의 정수 금액을 확인하세요."
             )
+            return 1
+
+    elif args.command == "budget":
+        service = BudgetService(BudgetStore(data_dir))
+        try:
+            if args.budget_command == "set":
+                service.set_budget(args.month, args.amount)
+                print(f"[저장 완료] {args.month} 예산 {args.amount}원")
+        except ValueError as error:
+            print(f"[오류] {error}")
+            print("[힌트] 월은 YYYY-MM 형식, 예산은 0 이상의 정수로 입력하세요.")
             return 1
 
     return 0
