@@ -107,17 +107,14 @@ class TransactionService:
 
         return f"TX-{highest_number + 1:06d}"
 
-    def list_transaction(self, limit: int = 10) -> list[Transaction]: # id 기준 desc 정렬; n개 추출
+    def list_transaction(self, limit: int = 10) -> list[Transaction]: # 날짜 내림차순, 같은 날짜는 ID 내림차순; 최대 n개 추출
         if type(limit) is not int or limit <= 0:
             raise ValueError("조회 개수는 1 이상의 정수여야 합니다.")
 
         data = heapq.nlargest(
             limit,
             self.transaction_repository.iter_transactions(),
-            key = lambda transaction: (
-                transaction.date,
-                int(transaction.id.removeprefix("TX-"))
-            )
+            key = self.transaction_sort_key
         )
 
         return data
@@ -136,7 +133,7 @@ class TransactionService:
             date_to,
             transaction_type
         )
-        
+
         for transaction in self.transaction_repository.iter_transactions():
             if date_from is not None and transaction.date < date_from: # 특정 날짜 이후인가
                 continue
@@ -168,3 +165,12 @@ class TransactionService:
 
         if date_from is not None and date_to is not None and date_from > date_to:
             raise ValueError("시작일은 종료일보다 더 미래일 수 없습니다.")
+
+    def transaction_sort_key(
+        self,
+        transaction: Transaction,
+    ) -> tuple[str, int]:
+        return (
+            transaction.date,
+            int(transaction.id.removeprefix("TX-")),
+        )
