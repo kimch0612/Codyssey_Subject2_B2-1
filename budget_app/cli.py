@@ -25,6 +25,14 @@ def main() -> int:
     list_parser = subparsers.add_parser("list")
     list_parser.add_argument("-limit", type=int, default=10)
 
+    search_parser = subparsers.add_parser("search")
+    search_parser.add_argument("-from", dest="date_from")
+    search_parser.add_argument("-to", dest="date_to")
+    search_parser.add_argument("-category")
+    search_parser.add_argument("-type", dest="transaction_type")
+    search_parser.add_argument("-q", dest="query")
+    search_parser.add_argument("-tag")
+
     args = parser.parse_args()
 
     if args.command == "category":
@@ -81,7 +89,7 @@ def main() -> int:
                 "카테고리는 category list에서 등록 여부를 확인하세요."
             )
             return 1
-            
+
     elif args.command == "list":
         service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
         try:
@@ -98,6 +106,32 @@ def main() -> int:
         for transaction in transactions:
             print(transaction)
 
+        return 0
+
+    elif args.command == "search":
+        count = 0
+        service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
+
+        try:
+            transactions = service.search_transactions(
+                args.date_from,
+                args.date_to,
+                args.category,
+                args.transaction_type,
+                args.query,
+                args.tag
+            )
+            for transaction in transactions:
+                print(transaction)
+                count += 1
+        except ValueError as error:
+            print(f"[오류] {error}")
+            print("[힌트] 날짜 형식, 타입, 카테고리 이름을 확인하세요.")
+            return 1
+        
+        if count == 0:
+            print("검색 결과가 없습니다.")
+        
         return 0
 
     return 0
