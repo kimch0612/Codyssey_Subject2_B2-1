@@ -9,8 +9,13 @@ import re, heapq
 
 
 class CategoryService:
-    def __init__(self, category_store: CategoryStore) -> None:
+    def __init__(
+        self,
+        category_store: CategoryStore,
+        transaction_repository: TransactionRepository,
+    ) -> None:
         self.category_store = category_store
+        self.transaction_repository = transaction_repository
 
     def add_category(self, name: str) -> None:
         name = name.strip()
@@ -23,6 +28,21 @@ class CategoryService:
 
     def iter_categories(self) -> Iterator[str]:
         return self.category_store.iter_categories()
+
+    def remove_category(self, name: str) -> None:
+        name = name.strip()
+        if not name:
+            raise ValueError("카테고리 이름은 빈 문자열일 수 없습니다.")
+        elif name not in self.iter_categories():
+            raise ValueError(f"카테고리 '{name}'은 존재하지 않습니다.")
+            
+        for transaction in self.transaction_repository.iter_transactions():
+            if transaction.category == name:
+                raise ValueError("사용 중인 카테고리는 삭제할 수 없습니다.")
+        
+        self.category_store.replace_all(
+            cat for cat in self.iter_categories() if cat != name
+        )
 
 class TransactionService:
     def __init__(

@@ -71,3 +71,22 @@ class CategoryStore:
             for line in f:
                 data = json.loads(line)
                 yield data["name"]
+
+    def replace_all(self, categories: Iterable[str]) -> None:
+        temp_file_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=self.path.parent,
+                delete=False
+            ) as f:
+                temp_file_path = Path(f.name)
+                for category in categories:
+                    data = {"name": category}
+                    json_line = json.dumps(data, ensure_ascii=False)
+                    f.write(json_line + "\n")
+            os.replace(temp_file_path, self.path) # 순식간에 휙 교체
+        finally:
+            if temp_file_path and temp_file_path.exists():
+                os.remove(temp_file_path)
