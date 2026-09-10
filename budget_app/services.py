@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from datetime import date as Date
+from dataclasses import replace
 
 from .storage import CategoryStore, TransactionRepository
 from .models import Transaction
@@ -235,3 +236,51 @@ class TransactionService:
         )
 
         self.transaction_repository.replace_all(remaining)
+
+    def update_transaction(
+        self,
+        transaction_id: str,
+        date: str | None = None,
+        transaction_type: str | None = None,
+        category: str | None = None,
+        amount: int | None = None,
+        memo: str | None = None,
+        tags: list[str] | None = None,
+    ) -> Transaction:
+        original = None
+
+        for transaction in self.transaction_repository.iter_transactions():
+            if transaction.id == transaction_id:
+                original = transaction
+                break
+        if original is None:
+            raise ValueError("존재하지 않는 거래 ID입니다.")
+
+        updated = replace(
+            original,
+            date=date.strip() if date is not None else original.date,
+            type=(
+                transaction_type.strip()
+                if transaction_type is not None
+                else original.type
+            ),
+            category=category.strip() if category is not None else original.category,
+            amount=amount if amount is not None else original.amount,
+            memo=memo.strip() if memo is not None else original.memo,
+            tags=tags if tags is not None else original.tags,
+        )
+
+        self.validate_transaction_data(
+            date=updated.date,
+            transaction_type=updated.type,
+            category=updated.category,
+            amount=updated.amount,
+        )
+
+        transactions = (
+            updated if transaction.id == transaction_id else transaction
+            for transaction in self.transaction_repository.iter_transactions()
+        )
+        self.transaction_repository.replace_all(transactions)
+        
+        return updated
