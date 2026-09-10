@@ -421,3 +421,17 @@ class SummaryService:
             budget_usage_rate=budget_usage_rate,
             budget_exceeded_amount=budget_exceeded_amount
         )
+
+    def top_categories(
+        self,
+        category_expenses: dict[str, int],
+        top: int = 3,
+    ) -> list[tuple[str, int]]:
+        if type(top) is not int or top < 1:
+            raise ValueError("top은 1 이상의 정수여야 합니다.")
+
+        return heapq.nlargest(
+            top,
+            category_expenses.items(),
+            key=lambda item: item[1],
+        )
