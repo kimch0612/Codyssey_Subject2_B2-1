@@ -2,7 +2,7 @@
 from os import path
 from pathlib import Path
 
-from .services import CategoryService, TransactionService, BudgetService, SummaryService, ExportService
+from .services import CategoryService, TransactionService, BudgetService, SummaryService, ExportService, ImportService
 from .storage import CategoryStore, TransactionRepository, BudgetStore, CsvTransactionStore
 
 import argparse
@@ -65,6 +65,14 @@ def main() -> int:
     export_parser.add_argument("-month")
     export_parser.add_argument("-from", dest="date_from")
     export_parser.add_argument("-to", dest="date_to")
+
+    import_parser = subparsers.add_parser("import")
+    import_parser.add_argument(
+        "-from",
+        dest="input_path",
+        type=Path,
+        required=True,
+    )
 
     args = parser.parse_args()
 
@@ -291,6 +299,20 @@ def main() -> int:
         except FileExistsError:
             print(f"[오류] 출력 파일이 이미 존재합니다: {args.out}")
             print("[힌트] 다른 출력 파일명을 지정하세요.")
+            return 1
+
+    elif args.command == "import":
+        service = ImportService( TransactionService(TransactionRepository(data_dir),CategoryStore(data_dir)), CsvTransactionStore() )
+        try:
+            imported, skipped = service.import_transactions(args.input_path)
+            print(f"[완료] imported={imported}, skipped={skipped}")
+        except ValueError as error:
+            print(f"[오류] {error}")
+            print("[힌트] CSV의 필수 헤더와 각 행의 열 개수를 확인하세요.")
+            return 1
+        except FileNotFoundError:
+            print(f"[오류] 입력 CSV 파일을 찾을 수 없습니다: {args.input_path}")
+            print("[힌트] 파일 경로와 이름을 확인하세요.")
             return 1
 
     return 0
