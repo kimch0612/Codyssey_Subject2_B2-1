@@ -36,6 +36,15 @@ def main() -> int:
     delete_parser = subparsers.add_parser("delete")
     delete_parser.add_argument("-id", required=True)
 
+    update_parser = subparsers.add_parser("update")
+    update_parser.add_argument("-id", required=True)
+    update_parser.add_argument("-date")
+    update_parser.add_argument("-type", dest="transaction_type")
+    update_parser.add_argument("-category")
+    update_parser.add_argument("-amount", type=int)
+    update_parser.add_argument("-memo")
+    update_parser.add_argument("-tags")
+
     args = parser.parse_args()
 
     if args.command == "category":
@@ -147,6 +156,36 @@ def main() -> int:
         except ValueError as error:
             print(f"[오류] {error}")
             print("[힌트] 삭제하려는 거래 ID를 확인하세요.")
+            return 1
+
+    elif args.command == "update":
+        service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
+        tags = None
+        if args.tags is not None:
+            tags = [
+                tag.strip()
+                for tag in args.tags.split(",")
+                if tag.strip()
+            ]
+
+        try:
+            transaction = service.update_transaction(
+                args.id,
+                args.date,
+                args.transaction_type,
+                args.category,
+                args.amount,
+                args.memo,
+                tags
+            )
+            print(f"[수정 완료] id: {transaction.id}")
+            return 0
+        except ValueError as error:
+            print(f"[오류] {error}")
+            print(
+                "[힌트] 거래 ID와 날짜 형식, 타입, 등록된 카테고리, "
+                "1 이상의 정수 금액을 확인하세요."
+            )
             return 1
 
     return 0
