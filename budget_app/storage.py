@@ -90,3 +90,38 @@ class CategoryStore:
         finally:
             if temp_file_path and temp_file_path.exists():
                 os.remove(temp_file_path)
+
+class BudgetStore:
+    def __init__(self, data_dir: Path) -> None:
+        if not data_dir.exists():
+            data_dir.mkdir(parents=True, exist_ok=True)
+
+        self.path = data_dir / "budgets.jsonl"
+        self.path.touch(exist_ok=True)
+    
+    def iter_budgets(self) -> Iterator[dict[str, str | int]]:
+        with self.path.open("r", encoding='utf-8') as f:
+            for line in f:
+                data = json.loads(line)
+                yield data
+
+    def replace_all(
+        self,
+        budgets: Iterable[dict[str, str | int]],
+    ) -> None:
+        temp_file_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=self.path.parent,
+                delete=False
+            ) as f:
+                temp_file_path = Path(f.name)
+                for budget in budgets:
+                    json_line = json.dumps(budget, ensure_ascii=False)
+                    f.write(json_line + "\n")
+            os.replace(temp_file_path, self.path) # 순식간에 휙 교체
+        finally:
+            if temp_file_path and temp_file_path.exists():
+                os.remove(temp_file_path)
