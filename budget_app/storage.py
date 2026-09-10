@@ -4,7 +4,7 @@ from dataclasses import asdict # dataclass 객체를 dict로 변환해줌
 
 from .models import Transaction
 
-import json, os, tempfile
+import json, os, tempfile, csv
 
 class TransactionRepository:
     def __init__(self, data_dir: Path) -> None:
@@ -131,3 +131,25 @@ class BudgetStore:
         json_line = json.dumps(data, ensure_ascii=False)
         with self.path.open("a", encoding='utf-8') as f:
             f.write(json_line + '\n')
+
+class CsvTransactionStore:
+    def export(self, output_path: Path, transactions: Iterable[Transaction]) -> int:
+        count = 0
+        fieldnames = [ "date", "type", "category", "amount", "memo", "tags" ]
+        with output_path.open("x", newline="", encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for transaction in transactions:
+                row = {
+                    "date": transaction.date,
+                    "type": transaction.type,
+                    "category": transaction.category,
+                    "amount": transaction.amount,
+                    "memo": transaction.memo,
+                    "tags": ",".join(transaction.tags), # ["외식", "점심"] → "외식,점심"
+                }
+                writer.writerow(row)
+                count += 1
+                
+        return count
