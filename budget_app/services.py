@@ -174,3 +174,47 @@ class TransactionService:
             transaction.date,
             int(transaction.id.removeprefix("TX-")),
         )
+
+    def search_transactions(
+        self,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        category: str | None = None,
+        transaction_type: str | None = None,
+        query: str | None = None,
+        tag: str | None = None,
+    ) -> Iterator[Transaction]:
+        # 근데 거래 데이터를 모두 메모리에 올리는거면 스트리밍의 의미가 없는 거 아닌가.. 모르겠음
+        batch_size = 100
+        last_key: tuple[str, int] | None = None
+
+        while True:
+            candidates = self.filter_transactions(
+                date_from=date_from,
+                date_to=date_to,
+                category=category,
+                transaction_type=transaction_type,
+                query=query,
+                tag=tag,
+            )
+
+            if last_key is not None:
+                candidates = (
+                    transaction
+                    for transaction in candidates
+                    if self.transaction_sort_key(transaction) < last_key
+                )
+            
+            batch = heapq.nlargest(
+                batch_size, # 모든 후보를 훑되, 최신 batch_size건만 메모리에 유지하는 식으로 구현
+                candidates,
+                key=self.transaction_sort_key,
+            )
+
+            if not batch:
+                return
+            
+            for transaction in batch:
+                yield transaction
+
+            last_key = self.transaction_sort_key(batch[-1])
