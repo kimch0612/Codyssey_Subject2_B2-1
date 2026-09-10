@@ -306,7 +306,7 @@ class TransactionService:
         return updated
 
 class BudgetService:
-    def __init__(self, budget_store: BudgetStore):
+    def __init__(self, budget_store: BudgetStore) -> None:
         self.budget_store = budget_store
 
     def validate_data(self, month: str, amount: int) -> None:
@@ -336,9 +336,16 @@ class BudgetService:
         else:
             self.add_budget(month, amount)
         
-    def add_budget(self, month: str, amount: int):
+    def add_budget(self, month: str, amount: int) -> None:
         # set_budget에서 이미 validate_data를 했으니 중복으로 할 필요는 없을듯
         self.budget_store.add(month, amount)
         
-    def update_budget(self, month: str, amount: int):
-        pass
+    def update_budget(self, month: str, amount: int) -> None:
+        updated = {"month": month, "amount": amount}
+
+        budgets = (
+            updated if budget["month"] == month else budget
+            for budget in self.budget_store.iter_budgets()
+        )
+
+        self.budget_store.replace_all(budgets)
