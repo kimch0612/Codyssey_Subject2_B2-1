@@ -3,7 +3,7 @@ from datetime import date as Date
 from dataclasses import replace
 
 from .storage import CategoryStore, TransactionRepository, BudgetStore
-from .models import Transaction
+from .models import Transaction, MonthlySummary
 
 import re, heapq
 
@@ -349,3 +349,58 @@ class BudgetService:
         )
 
         self.budget_store.replace_all(budgets)
+
+class SummaryService:
+    def __init__(
+        self,
+        transaction_repository: TransactionRepository,
+        budget_store: BudgetStore,
+    ) -> None:
+        self.transaction_repository = transaction_repository
+        self.budget_store = budget_store
+
+    def validate_data(self, month: str) -> None:
+        if type(month) is not str or re.fullmatch(
+            r"[0-9]{4}-[0-9]{2}", month
+        ) is None:
+            raise ValueError("월 데이터는 YYYY-MM 형식이어야 합니다.")
+
+        try:
+            Date.fromisoformat(f"{month}-01")
+        except ValueError:
+            raise ValueError("실제로 존재하는 연월을 입력하세요.") from None
+    
+    def summarize_month(self, month: str) -> MonthlySummary:
+        self.validate_data(month)
+
+        transactions = (
+            transaction
+            for transaction in self.transaction_repository.iter_transactions()
+            if transaction.date.startswith(month + "-")
+        )
+
+        transaction_count = 0
+        total_income = 0
+        total_expense = 0
+        category_expenses: dict[str, int] = {}
+
+        for transaction in transactions:
+            transaction_count += 1
+
+            if transaction.type == "income":
+                total_income += transaction.amount
+            elif transaction.type == "expense":
+                total_expense += transaction.amount
+                category_expenses[transaction.category] = (
+                    category_expenses.get(transaction.category, 0)
+                    + transaction.amount
+                )
+
+        return MonthlySummary(
+            month=month,
+            transaction_count=transaction_count,
+            total_income=total_income,
+            total_expense=total_expense,
+            balance=total_income - total_expense,
+            category_expenses=category_expenses,
+        )
