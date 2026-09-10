@@ -36,7 +36,7 @@
 - [x] `python -m budget_app`으로 실행되도록 연결하기
 - [x] `argparse`로 명령을 구분하기
 - [x] `category add/list/remove`, `budget set`의 중첩 명령 구성하기
-- [ ] 저장 폴더 변경 옵션 연결하기
+- [x] 저장 폴더 변경 옵션 연결하기 (`-data-dir`은 명령 앞에 지정, 생략 시 ./data; 거래·카테고리·예산 적용 및 폴더 간 분리 검증)
 - [x] 현재 구현된 명령에서 `--help`로 도움말 출력
 - [x] `summary --help` 도움말 제공
 - [x] `export --help` 도움말 제공

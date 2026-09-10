@@ -9,9 +9,11 @@ import argparse
 
 
 def main() -> int:
-    data_dir = Path("data/")
-    parser = argparse.ArgumentParser() # 인자를 받을 수 있게 관련 기능 활성화
-    subparsers = parser.add_subparsers(dest="command", required=True) # 인자를 받을 수 있게 준비
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-data-dir", type=Path,
+        default=Path("data"), help="데이터 저장 폴더 (기본값: ./data)",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
     category_parser = subparsers.add_parser("category")
     category_subparsers = category_parser.add_subparsers(
@@ -75,6 +77,7 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+    data_dir = args.data_dir
 
     if args.command == "category":
         service = CategoryService( CategoryStore(data_dir), TransactionRepository(data_dir) )
