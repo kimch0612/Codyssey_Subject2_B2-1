@@ -87,8 +87,13 @@ def main() -> int:
                 service.add_category(name)
                 print(f"[저장 완료] category={name.strip()}")
             elif args.category_command == "list":
+                count = 0
                 for name in service.iter_categories():
                     print(f"- {name}")
+                    count += 1
+                if count == 0:
+                    print("[안내] 등록된 카테고리가 없습니다.")
+                    print("[힌트] category add로 카테고리를 먼저 등록하세요.")
             elif args.category_command == "remove":
                 name = input("카테고리 이름을 입력해주세요: ")
                 service.remove_category(name)
@@ -105,7 +110,13 @@ def main() -> int:
             return 1
 
     elif args.command == "add":
-        service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
+        category_store = CategoryStore(data_dir)
+        service = TransactionService( TransactionRepository(data_dir), category_store )
+
+        if next(category_store.iter_categories(), None) is None:
+            print("[오류] 등록된 카테고리가 없어 거래를 추가할 수 없습니다.")
+            print("[힌트] category add로 카테고리를 먼저 등록하세요.")
+            return 1
 
         try:
             amount = int(input("금액(0보다 큰 정수): "))
@@ -140,7 +151,7 @@ def main() -> int:
             print(f"[오류] {error}")
             print(
                 "[힌트] 날짜·타입·양수 금액을 확인하고, "
-                "카테고리는 category list에서 등록 여부를 확인하세요."
+                "카테고리는 category list로 확인하고, 새 이름은 category add로 등록하세요."
             )
             return 1
 
