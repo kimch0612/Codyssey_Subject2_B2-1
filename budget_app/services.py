@@ -155,6 +155,8 @@ class TransactionService:
             date_to,
             transaction_type
         )
+        if category is not None and category not in self.category_store.iter_categories():
+            raise ValueError("존재하지 않는 카테고리 이름입니다.")
 
         for transaction in self.transaction_repository.iter_transactions():
             if date_from is not None and transaction.date < date_from: # 특정 날짜 이후인가
@@ -502,10 +504,9 @@ class ImportService:
         self.transaction_service = transaction_service
         self.csv_store = csv_store
 
-    def import_transactions(self, input_path: Path) -> tuple[int, int]: # (imported, skipped)
-        imported_count, skipped_count = 0, 0
-        
-        for row in self.csv_store.iter_rows(input_path):
+    def import_transactions(self, input_path: Path) -> Iterator[str | None]:
+        """각 행을 처리한 뒤 성공은 None, 값 오류는 설명을 전달한다."""
+        for row_number, row in enumerate(self.csv_store.iter_rows(input_path), start=1):
             try:
                 amount = int(row["amount"])
 
@@ -524,10 +525,8 @@ class ImportService:
                     tags=tags,
                 )
 
-            except ValueError:
-                skipped_count += 1
+            except ValueError as error:
+                yield f"CSV 데이터 {row_number}번째 행: {error}"
                 continue
 
-            imported_count += 1
-
-        return imported_count, skipped_count
+            yield None

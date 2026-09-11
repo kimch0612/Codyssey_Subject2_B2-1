@@ -216,7 +216,7 @@ def main() -> int:
                 count += 1
         except ValueError as error:
             print(f"[오류] {error}")
-            print("[힌트] 날짜 형식, 타입, 카테고리 이름을 확인하세요.")
+            print("[힌트] 날짜 형식과 타입을 확인하고, 카테고리는 category list로 확인하거나 category add로 등록하세요.")
             return 1
         
         if count == 0:
@@ -347,10 +347,18 @@ def main() -> int:
 
     elif args.command == "import":
         service = ImportService( TransactionService(TransactionRepository(data_dir),CategoryStore(data_dir)), CsvTransactionStore() )
+        imported, skipped = 0, 0
         try:
-            imported, skipped = service.import_transactions(args.input_path)
-            print(f"[완료] imported={imported}, skipped={skipped}")
-            if skipped != 0: return 1
+            for error in service.import_transactions(args.input_path):
+                if error is None:
+                    imported += 1
+                else:
+                    skipped += 1
+                    print(f"[오류] {error}")
+                    print(
+                        "[힌트] 날짜는 YYYY-MM-DD, 타입은 income/expense, 금액은 양수 정수로 입력하고, "
+                        "카테고리는 category list로 확인하거나 category add로 등록하세요."
+                    )
         except ValueError as error:
             print(f"[오류] {error}")
             print("[힌트] CSV의 필수 헤더와 각 행의 열 개수, 혹은 중복된 헤더값은 없는지 확인하세요.")
@@ -358,6 +366,11 @@ def main() -> int:
         except FileNotFoundError:
             print(f"[오류] 입력 CSV 파일을 찾을 수 없습니다: {args.input_path}")
             print("[힌트] 파일 경로와 이름을 확인하세요.")
+            return 1
+        finally:
+            print(f"[반영 결과] imported={imported}, skipped={skipped}")
+
+        if skipped != 0:
             return 1
 
     return 0
