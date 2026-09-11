@@ -340,6 +340,7 @@ def main() -> int:
         try:
             imported, skipped = service.import_transactions(args.input_path)
             print(f"[완료] imported={imported}, skipped={skipped}")
+            if skipped != 0: return 1
         except ValueError as error:
             print(f"[오류] {error}")
             print("[힌트] CSV의 필수 헤더와 각 행의 열 개수, 혹은 중복된 헤더값은 없는지 확인하세요.")
