@@ -8,12 +8,12 @@ from .decorators import measure_time, error_handler
 
 import argparse
 
-
+# argparse 모듈의 error 메서드를 상속받아서 오류 메시지를 과제에서 요구한대로 출력
 class ArgumentParser(argparse.ArgumentParser):
-    def error(self, message: str) -> None:
+    def error(self, message: str) -> None: # 에러 메서드를 
         super().error(
             f"{message}\n[힌트] {self.prog} --help로 명령과 옵션 사용법을 확인하세요."
-        )
+        ) # 부모(super)클래스의 error 함수의 출력 포맷을 이렇게 수정한다
 
 
 @measure_time
