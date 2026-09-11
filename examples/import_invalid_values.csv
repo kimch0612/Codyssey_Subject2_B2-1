@@ -1,0 +1,7 @@
+date,type,category,amount,memo,tags
+2026-09-12,expense,food,1200,정상 행: 간식,test
+2026-09-12,expense,food,0,오류: 금액 0,test
+2026-02-30,expense,food,1000,오류: 존재하지 않는 날짜,test
+2026-09-12,transfer,food,1000,오류: 허용되지 않은 타입,test
+2026-09-12,expense,shopping,1000,오류: 미등록 카테고리,test
+2026-09-13,expense,food,800,정상 행: 오류 이후에도 저장,test

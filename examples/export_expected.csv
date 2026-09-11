@@ -1,0 +1,6 @@
+date,type,category,amount,memo,tags
+2026-09-11,expense,food,15000,"점심, 김밥","meal,lunch"
+2026-09-01,income,salary,300000,9월 용돈,allowance
+2026-09-02,expense,rent,100000,9월 월세,fixed
+2026-09-03,expense,transport,20000,교통카드 충전,commute
+2026-09-10,expense,food,8000,저녁 식사,meal

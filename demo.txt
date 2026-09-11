@@ -1,0 +1,201 @@
+B2-1 콘솔 가계부 시연 순서
+
+이 문서는 직접 명령을 입력하는 시연용이다.
+자동 리허설은 과제 폴더에서 bash demo.sh로 실행한다.
+두 방식은 각각 새 임시 폴더를 사용하므로 기존 data/를 변경하지 않는다.
+
+================================================================
+0. 준비와 도움말 — Subject.txt 4장
+================================================================
+
+같은 터미널에서 아래 명령을 차례대로 실행한다.
+
+    cd /Users/charles/Documents/Dev/Codyssey/Subject2/B2-1
+    DEMO_DIR=$(mktemp -d "${TMPDIR:-/tmp}/b2-1-demo.XXXXXX")
+    budget() { python3 -B -m budget_app --data-dir "$DEMO_DIR/data" "$@"; }
+    echo "$DEMO_DIR"
+    budget --help
+
+budget은 긴 실행 명령을 줄인 시연용 셸 함수다.
+예: budget list는 python3 -B -m budget_app --data-dir "$DEMO_DIR/data" list와 같다.
+처음부터 다시 시연할 때는 준비 명령부터 실행해 새 임시 폴더를 만든다.
+각 단계는 한 번씩 진행해야 아래 ID와 합계가 일치한다.
+
+================================================================
+1. 초기 상태와 카테고리 — Subject.txt 4장
+================================================================
+
+    budget category list
+    budget add
+    echo $?
+
+기대: 등록 안내, 거래 입력 전 차단, 종료 코드 1.
+
+    budget category add
+
+입력: food
+
+    budget category add
+
+입력: salary
+
+    budget category add
+
+입력: rent
+
+    budget category add
+
+입력: transport
+
+    budget category add
+
+입력: unused
+
+    budget category list
+
+기대: 등록한 카테고리 5개.
+
+================================================================
+2. 대화형 거래 추가와 CSV 가져오기 — Subject.txt 2·4장
+================================================================
+
+    budget add
+
+질문 순서에 맞춰 아래 값을 한 줄씩 입력한다.
+    금액: 12000
+    태그: meal,lunch
+    날짜: 2026-09-11
+    타입: expense
+    카테고리: food
+    메모: 점심, 김밥
+
+기대: TX-000001 생성. 각 명령 끝의 [실행 시간]은 데코레이터 출력이다.
+add의 시간에는 사람이 입력하는 시간도 포함된다.
+
+    budget import --from examples/import_transactions.csv
+    echo $?
+
+기대: imported=7, skipped=0, 종료 코드 0. 거래는 총 8개.
+각 명령이 별도 프로세스로 실행돼도 데이터가 유지되는 점을 설명한다.
+
+================================================================
+3. 최신순 목록과 복합 검색 — Subject.txt 4장
+================================================================
+
+    budget list --limit 3
+
+기대 ID 순서: TX-000008, TX-000006, TX-000001.
+10월 거래가 가장 먼저 나오고, 같은 날짜는 ID 숫자 내림차순이다.
+같은 날짜의 순서는 현재 구현 선택이며 원문이 지정한 규칙은 아니다.
+
+    budget search --from 2026-09-01 --to 2026-09-30 --category food --type expense --q 점심 --tag lunch
+
+기대: TX-000001 한 건.
+
+================================================================
+4. 수정·삭제와 사용 중인 카테고리 — Subject.txt 4장
+================================================================
+
+    budget update --id TX-000001 --amount 15000
+    budget delete --id TX-000006
+    budget delete --id TX-999999
+    echo $?
+
+기대: 금액 수정, 커피 거래 삭제, 없는 ID 안내와 종료 코드 1.
+
+    budget category remove
+
+입력: food
+기대: 사용 중이므로 삭제 거부.
+
+    echo $?
+    budget category remove
+
+입력: unused
+기대: 사용하지 않는 카테고리 삭제 성공.
+
+================================================================
+5. 월별 요약과 예산 경고 — Subject.txt 4장
+================================================================
+
+    budget budget set --month 2026-09 --amount 140000
+    budget summary --month 2026-09 --top 3
+
+기대:
+    수입 300000원 / 지출 143000원 / 잔액 157000원
+    예산 사용률 102.1% / 3000원 초과 경고
+    지출 TOP 3: rent 100000, food 23000, transport 20000
+
+    budget summary --month 2025-01
+
+기대: 데이터 없음.
+
+================================================================
+6. CSV 내보내기와 저장 파일 — Subject.txt 2·4장
+================================================================
+
+    budget export --out "$DEMO_DIR/september.csv" --month 2026-09
+    cat "$DEMO_DIR/september.csv"
+
+기대: 5건. 헤더는 date,type,category,amount,memo,tags.
+쉼표가 포함된 메모와 태그가 큰따옴표로 감싸지는 점을 보여준다.
+examples/export_expected.csv와 같은 데이터다.
+
+    budget export --out "$DEMO_DIR/period.csv" --from 2026-09-01 --to 2026-09-10
+
+기대: 4건.
+
+    ls "$DEMO_DIR/data"
+
+기대: transactions.jsonl, categories.jsonl, budgets.jsonl.
+
+    budget export --out "$DEMO_DIR/no-condition.csv"
+    echo $?
+
+기대: 기간 조건 필요 안내와 종료 코드 1.
+
+================================================================
+7. 오류 안내와 종료 코드 — Subject.txt 4·7장
+================================================================
+
+    budget import --from examples/import_invalid_values.csv
+    echo $?
+
+기대: 금액 0, 잘못된 날짜·타입·카테고리 오류 안내.
+정상 행은 저장되어 imported=2, skipped=4, 종료 코드 1.
+행별 보고와 건너뛰기는 현재 구현 방식이며, 원문 필수는
+입력 검증·처리 건수·원인과 해결 힌트·비영 종료다.
+
+    budget import --from examples/import_partial_failure.csv
+    echo $?
+
+기대: 열 개수 오류로 중단, imported=1, skipped=0, 종료 코드 1.
+중단 전에 저장한 한 건은 유지된다. 이는 현재 구현 정책이다.
+
+    budget list --limit abc
+    echo $?
+
+기대: 정수 인자 오류와 --help 안내, 종료 코드 2.
+
+    budget add </dev/null
+    echo $?
+
+기대: EOF 입력 종료 안내, 종료 코드 1, 스택트레이스 없음.
+Ctrl+C도 보여주려면 budget add 실행 후 입력 대기 중 Ctrl+C를 누른다.
+
+================================================================
+8. 코드와 README 설명 — Subject.txt 2·3·4장
+================================================================
+
+아래 파일을 열어 짧게 설명한다. 명령 실행만으로 메모리 사용을 증명했다고 말하지 않는다.
+
+- models.py: Transaction dataclass와 타입 힌트.
+- storage.py: iter_transactions의 yield, JSONL 한 줄씩 읽기.
+- services.py: list의 heapq.nlargest, search의 100건씩 반복 스캔.
+  전체 결과를 메모리에 모으지 않지만 검색은 파일을 여러 번 읽는 방식이다.
+- storage.py: 수정·삭제 시 임시 파일 작성 후 os.replace.
+- decorators.py와 cli.py: 시간 측정·오류 처리 코드 분리, main에 적용.
+  원래 함수의 반환값을 그대로 전달해 종료 코드를 유지한다.
+- README.md: 실행 방법, 저장 위치·형식, 명령 예시, CSV 스키마.
+
+시연 결과는 DEMO_DIR에 남아 있다. 기존 data/와 Git 이력은 변경하지 않는다.

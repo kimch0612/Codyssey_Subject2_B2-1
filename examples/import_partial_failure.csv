@@ -1,0 +1,4 @@
+date,type,category,amount,memo,tags
+2026-09-14,expense,food,3000,중단 전에 저장되는 행,test
+2026-09-14,expense,food
+2026-09-15,expense,food,900,중단 후 읽지 않는 행,test
