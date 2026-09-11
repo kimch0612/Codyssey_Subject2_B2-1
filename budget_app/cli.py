@@ -10,7 +10,7 @@ import argparse
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-data-dir", type=Path,
+    parser.add_argument("--data-dir", "-data-dir", type=Path,
         default=Path("data"), help="데이터 저장 폴더 (기본값: ./data)",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -27,27 +27,27 @@ def main() -> int:
     add_parser = subparsers.add_parser("add") # 근데 이건 필요 없는거 아닌가? 흠..
 
     list_parser = subparsers.add_parser("list")
-    list_parser.add_argument("-limit", type=int, default=10)
+    list_parser.add_argument("--limit", "-limit", type=int, default=10)
 
     search_parser = subparsers.add_parser("search")
-    search_parser.add_argument("-from", dest="date_from")
-    search_parser.add_argument("-to", dest="date_to")
-    search_parser.add_argument("-category")
-    search_parser.add_argument("-type", dest="transaction_type")
-    search_parser.add_argument("-q", dest="query")
-    search_parser.add_argument("-tag")
+    search_parser.add_argument("--from", "-from", dest="date_from")
+    search_parser.add_argument("--to", "-to", dest="date_to")
+    search_parser.add_argument("--category", "-category")
+    search_parser.add_argument("--type", "-type", dest="transaction_type")
+    search_parser.add_argument("--q", "-q", dest="query")
+    search_parser.add_argument("--tag", "-tag")
 
     delete_parser = subparsers.add_parser("delete")
-    delete_parser.add_argument("-id", required=True)
+    delete_parser.add_argument("--id", "-id", required=True)
 
     update_parser = subparsers.add_parser("update")
-    update_parser.add_argument("-id", required=True)
-    update_parser.add_argument("-date")
-    update_parser.add_argument("-type", dest="transaction_type")
-    update_parser.add_argument("-category")
-    update_parser.add_argument("-amount", type=int)
-    update_parser.add_argument("-memo")
-    update_parser.add_argument("-tags")
+    update_parser.add_argument("--id", "-id", required=True)
+    update_parser.add_argument("--date", "-date")
+    update_parser.add_argument("--type", "-type", dest="transaction_type")
+    update_parser.add_argument("--category", "-category")
+    update_parser.add_argument("--amount", "-amount", type=int)
+    update_parser.add_argument("--memo", "-memo")
+    update_parser.add_argument("--tags", "-tags")
 
     budget_parser = subparsers.add_parser("budget")
     budget_subparsers = budget_parser.add_subparsers(
@@ -55,22 +55,22 @@ def main() -> int:
         required=True,
     )
     budget_set_parser = budget_subparsers.add_parser("set")
-    budget_set_parser.add_argument("-month", required=True)
-    budget_set_parser.add_argument("-amount", type=int, required=True)
+    budget_set_parser.add_argument("--month", "-month", required=True)
+    budget_set_parser.add_argument("--amount", "-amount", type=int, required=True)
 
     summary_parser = subparsers.add_parser("summary")
-    summary_parser.add_argument("-month", required=True)
-    summary_parser.add_argument("-top", type=int, default=3)
+    summary_parser.add_argument("--month", "-month", required=True)
+    summary_parser.add_argument("--top", "-top", type=int, default=3)
 
     export_parser = subparsers.add_parser("export")
-    export_parser.add_argument("-out", type=Path, required=True)
-    export_parser.add_argument("-month")
-    export_parser.add_argument("-from", dest="date_from")
-    export_parser.add_argument("-to", dest="date_to")
+    export_parser.add_argument("--out", "-out", type=Path, required=True)
+    export_parser.add_argument("--month", "-month")
+    export_parser.add_argument("--from", "-from", dest="date_from")
+    export_parser.add_argument("--to", "-to", dest="date_to")
 
     import_parser = subparsers.add_parser("import")
     import_parser.add_argument(
-        "-from",
+        "--from", "-from",
         dest="input_path",
         type=Path,
         required=True,
