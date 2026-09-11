@@ -9,10 +9,17 @@ from .decorators import measure_time, error_handler
 import argparse
 
 
+class ArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        super().error(
+            f"{message}\n[힌트] {self.prog} --help로 명령과 옵션 사용법을 확인하세요."
+        )
+
+
 @measure_time
 @error_handler
 def main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     parser.add_argument("--data-dir", "-data-dir", type=Path,
         default=Path("data"), help="데이터 저장 폴더 (기본값: ./data)",
