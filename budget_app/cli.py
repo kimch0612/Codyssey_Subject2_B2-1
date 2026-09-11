@@ -227,6 +227,11 @@ def main() -> int:
             return 1
 
     elif args.command == "update":
+        if all(value is None for value in (args.date, args.transaction_type, args.category, args.amount, args.memo, args.tags)):
+            print("[오류] 수정할 항목이 없습니다.")
+            print("[힌트] --date, --type, --category, --amount, --memo, --tags 중 하나 이상을 지정하세요.")
+            return 1
+
         service = TransactionService( TransactionRepository(data_dir), CategoryStore(data_dir) )
         tags = None
         if args.tags is not None:
