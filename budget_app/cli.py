@@ -342,7 +342,7 @@ def main() -> int:
             print(f"[완료] imported={imported}, skipped={skipped}")
         except ValueError as error:
             print(f"[오류] {error}")
-            print("[힌트] CSV의 필수 헤더와 각 행의 열 개수를 확인하세요.")
+            print("[힌트] CSV의 필수 헤더와 각 행의 열 개수, 혹은 중복된 헤더값은 없는지 확인하세요.")
             return 1
         except FileNotFoundError:
             print(f"[오류] 입력 CSV 파일을 찾을 수 없습니다: {args.input_path}")

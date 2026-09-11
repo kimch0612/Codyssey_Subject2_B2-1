@@ -167,6 +167,9 @@ class CsvTransactionStore:
                     "CSV에 date, type, category, amount 헤더가 필요합니다."
                 )
 
+            if len(headers) != len(set(headers)): # 헤더에 중복이 있는감..
+                raise ValueError("CSV에 중복된 헤더가 있습니다.")
+
             for row in reader:
                 if None in row or any(value is None for value in row.values()):
                     raise ValueError(
