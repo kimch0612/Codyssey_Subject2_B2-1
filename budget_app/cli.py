@@ -10,26 +10,34 @@ import argparse
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     parser.add_argument("--data-dir", "-data-dir", type=Path,
         default=Path("data"), help="데이터 저장 폴더 (기본값: ./data)",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     category_parser = subparsers.add_parser("category")
+    category_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     category_subparsers = category_parser.add_subparsers(
         dest="category_command",
         required=True,
     )
-    category_subparsers.add_parser("add")
-    category_subparsers.add_parser("list")
-    category_subparsers.add_parser("remove")
+    category_add_parser = category_subparsers.add_parser("add")
+    category_add_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
+    category_list_parser = category_subparsers.add_parser("list")
+    category_list_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
+    category_remove_parser = category_subparsers.add_parser("remove")
+    category_remove_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
 
-    add_parser = subparsers.add_parser("add") # 근데 이건 필요 없는거 아닌가? 흠..
+    add_parser = subparsers.add_parser("add")
+    add_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
 
     list_parser = subparsers.add_parser("list")
+    list_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     list_parser.add_argument("--limit", "-limit", type=int, default=10)
 
     search_parser = subparsers.add_parser("search")
+    search_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     search_parser.add_argument("--from", "-from", dest="date_from")
     search_parser.add_argument("--to", "-to", dest="date_to")
     search_parser.add_argument("--category", "-category")
@@ -38,9 +46,11 @@ def main() -> int:
     search_parser.add_argument("--tag", "-tag")
 
     delete_parser = subparsers.add_parser("delete")
+    delete_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     delete_parser.add_argument("--id", "-id", required=True)
 
     update_parser = subparsers.add_parser("update")
+    update_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     update_parser.add_argument("--id", "-id", required=True)
     update_parser.add_argument("--date", "-date")
     update_parser.add_argument("--type", "-type", dest="transaction_type")
@@ -50,25 +60,30 @@ def main() -> int:
     update_parser.add_argument("--tags", "-tags")
 
     budget_parser = subparsers.add_parser("budget")
+    budget_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     budget_subparsers = budget_parser.add_subparsers(
         dest="budget_command",
         required=True,
     )
     budget_set_parser = budget_subparsers.add_parser("set")
+    budget_set_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     budget_set_parser.add_argument("--month", "-month", required=True)
     budget_set_parser.add_argument("--amount", "-amount", type=int, required=True)
 
     summary_parser = subparsers.add_parser("summary")
+    summary_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     summary_parser.add_argument("--month", "-month", required=True)
     summary_parser.add_argument("--top", "-top", type=int, default=3)
 
     export_parser = subparsers.add_parser("export")
+    export_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     export_parser.add_argument("--out", "-out", type=Path, required=True)
     export_parser.add_argument("--month", "-month")
     export_parser.add_argument("--from", "-from", dest="date_from")
     export_parser.add_argument("--to", "-to", dest="date_to")
 
     import_parser = subparsers.add_parser("import")
+    import_parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
     import_parser.add_argument(
         "--from", "-from",
         dest="input_path",
