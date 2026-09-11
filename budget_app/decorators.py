@@ -16,3 +16,21 @@ def measure_time(func: Callable[..., int]) -> Callable[..., int]:
         return result
 
     return wrapper
+
+def input_interrupt(func: Callable[..., int]) -> Callable[..., int]:
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> int:
+        try:
+            result = func(*args, **kwargs)
+            return result
+        except EOFError:
+            print("[오류] 입력이 종료되어 작업을 완료하지 못했습니다.")
+            print("[힌트] 명령을 다시 실행하고 필요한 값을 입력하세요.")
+            return 1 
+        except KeyboardInterrupt:
+            print("[오류] 입력이 종료되어 작업을 완료하지 못했습니다.")
+            print("[힌트] 명령을 다시 실행하고 필요한 값을 입력하세요.")
+            return 1
+    
+    return wrapper
+    

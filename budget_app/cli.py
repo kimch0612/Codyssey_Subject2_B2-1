@@ -4,12 +4,13 @@ from pathlib import Path
 
 from .services import CategoryService, TransactionService, BudgetService, SummaryService, ExportService, ImportService
 from .storage import CategoryStore, TransactionRepository, BudgetStore, CsvTransactionStore
-from .decorators import measure_time
+from .decorators import measure_time, input_interrupt
 
 import argparse
 
 
 @measure_time
+@input_interrupt
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("-help", action="help", help="도움말을 출력하고 종료")
